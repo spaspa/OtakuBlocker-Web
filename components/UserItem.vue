@@ -1,8 +1,8 @@
 <template lang="pug">
-  div.box(@click.prevent="onclick"
+  .box(@click.prevent="onclick"
           :class="selected ? 'active' : 'inactive'")
     img(:src="user.profile_image_url_https")
-    div.inner
+    .inner
       h1 {{ user.name }}
       p @{{ user.screen_name }}
 </template>

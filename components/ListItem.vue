@@ -1,5 +1,5 @@
 <template lang="pug">
-  div.box(@click.prevent="onclick"
+  .box(@click.prevent="onclick"
           :class="selected ? 'active' : 'inactive'")
     h1 {{ list.name }}
     p {{ list.member_count }} 人のメンバー

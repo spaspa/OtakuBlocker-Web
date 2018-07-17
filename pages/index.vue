@@ -1,19 +1,19 @@
 <template lang="pug">
   section.container
     Header(@executeButtonClick="onExecuteButtonClick")
-    div.container(v-if="!authUser")
-    div.container(v-if="authUser")
-      div.box.stepContent#box1
-        div.numberCircle
+    .container(v-if="!authUser")
+    .container(v-if="authUser")
+      .box.stepContent#box1
+        .numberCircle
           p 1
-        div.description
+        .description
           h2 ターゲットを選択 
           p 介入されたくない会話をしているユーザーを選択します
         h3 
           span.icon.is-small
             i.fas.fa-list
           | リストから選択
-        div.subcontainer#selectByList
+        .subcontainer#selectByList
           ListItem(v-for="list in userLists"
                    :list="list"
                    :selected="list.id in listSelection"
@@ -24,12 +24,12 @@
           span.icon.is-small
             i.fas.fa-search
           | ユーザーを検索
-        div.field
+        .field
           p.control.has-icons-left
             input.input(v-model="userSearchQuery" placeholder="@id / 検索ワード")
             span.icon.is-small.is-left
               i.fas.fa-search
-        div.subcontainer#selectBySearch
+        .subcontainer#selectBySearch
           UserItem(v-for="user in userSearchResult"
                    :user="user"
                    :selected="selectedUsers.some(e => e.id == user.id)"
@@ -42,13 +42,13 @@
           | 追加したユーザー
           small(v-if="totalUsersCount > selectedUsers.length")
             | 20人を超えるリストは一部のみ表示しています
-        div.subcontainer#selectResult
+        .subcontainer#selectResult
           img.profileImage.selectedUserProfileImage(v-for="user in selectedUsers" :src="user.profile_image_url_https")
 
-      div.box.stepContent#box2
-        div.numberCircle
+      .box.stepContent#box2
+        .numberCircle
           p 2
-        div.description
+        .description
           h2 オプションを設定 
           p ホワイトリストや検索件数などを設定します
         h3 
@@ -57,20 +57,20 @@
           | ホワイトリスト
           small
             | 以下のユーザーをブロック対象から除外します
-        div.subcontainer.stack#optionWhiteList
-          div.control
+        .subcontainer.stack#optionWhiteList
+          .control
             label.checkbox
               input(type="checkbox")
               | 自分がフォローしているユーザー
-          div.control
+          .control
             label.checkbox
               input(type="checkbox")
               | 自分のフォロワー
-          div.control
+          .control
             label.checkbox
               input(type="checkbox")
               | ターゲットがフォローしているユーザー
-          div.control
+          .control
             label.checkbox
               input(type="checkbox")
               | FF比が
@@ -80,22 +80,22 @@
           span.icon.is-small
             i.fas.fa-cog
           | 検索件数設定
-        div.subcontainer.stack#optionSearchParam
-          div.field.is-horizontal
-            div.field-label.is-normal
+        .subcontainer.stack#optionSearchParam
+          .field.is-horizontal
+            .field-label.is-normal
               label.label ターゲット内リプライ検索数
-            div.field-body
-              div.field
-                div.control
+            .field-body
+              .field
+                .control
                   input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text")
                 p.help.is-danger(v-if="!validatePOYOPOYO")
                   | This Field is required
-          div.field.is-horizontal
-            div.field-label.is-normal
+          .field.is-horizontal
+            .field-label.is-normal
               label.label ブロック対象ツイート検索数
-            div.field-body
-              div.field
-                div.control
+            .field-body
+              .field
+                .control
                   input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text")
                 p.help.is-danger(v-if="!validatePOYOPOYO")
                   | This Field is required

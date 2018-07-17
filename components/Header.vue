@@ -1,6 +1,6 @@
 <template lang="pug">
-  div.header(role="header")
-    div#po
+  .header(role="header")
+    #po
     svg#curve(version="1.1"
               xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -14,7 +14,7 @@
       span.icon.is-large
         i.fas.fa-ban.fa-lg(v-if="authUser")
         i.fab.fa-twitter.fa-lg(v-else)
-    div#headerBaloon(v-if="!authUser")
+    #headerBaloon(v-if="!authUser")
       p
         | Log in to twitter
     h1 Otaku Blocker
