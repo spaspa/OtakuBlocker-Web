@@ -280,10 +280,12 @@ export default {
     font-weight: 600
     color: $primary
     margin-bottom: 0.5rem
+    text-align: left
     span
       margin-right: 1rem
     small
-      margin-left: 1rem
+      display: block
+      margin-left: 2rem
       font-size: 0.7rem
       font-weight: 400
 
