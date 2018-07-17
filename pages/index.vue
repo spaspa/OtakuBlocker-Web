@@ -1,9 +1,8 @@
 <template lang="pug">
   section.container
-    Header
-    button.authButton(v-if="!authUser" @click="login")
-      | Log in to Twitter
-    div.container(v-else)
+    Header(@executeButtonClick="onExecuteButtonClick")
+    div.container(v-if="!authUser")
+    div.container(v-if="authUser")
       div.box.stepContent#box1
         div.numberCircle
           p 1
@@ -217,6 +216,14 @@ export default {
       if (id in this.userSelection) {
         this.totalUsersCount -= 1
         this.$delete(this.userSelection, id)
+      }
+    },
+    onExecuteButtonClick () {
+      if (this.authUser) {
+
+      }
+      else {
+        this.login()
       }
     }
   }
