@@ -57,37 +57,36 @@
           | ホワイトリスト
           small
             | 以下のユーザーをブロック対象から除外します
-        .subcontainer.stack#optionWhiteList
+        .subcontainer.stack#optionsWhiteList
           .control
             label.checkbox
-              input(type="checkbox")
+              input(type="checkbox" v-model="whitelists.myFriend")
               | 自分がフォローしているユーザー
           .control
             label.checkbox
-              input(type="checkbox")
+              input(type="checkbox" v-model="whitelists.myFollower")
               | 自分のフォロワー
           .control
             label.checkbox
-              input(type="checkbox")
+              input(type="checkbox" v-model="whitelists.targetsFriend")
               | ターゲットがフォローしているユーザー
           .control
             label.checkbox
-              input(type="checkbox")
-              | FF比が
-              input.is-horizontal(type="text")
-              | 以上のユーザー
+              input(type="checkbox" v-model="whitelists.ffRate")
+              | FF比が{{ params.ffRateThreshould }}以上のユーザー
         h3 
           span.icon.is-small
             i.fas.fa-cog
-          | 検索件数設定
-        .subcontainer.stack#optionSearchParam
+          | 詳細設定
+        .subcontainer.stack#optionsSearchParam
           .field.is-horizontal
             .field-label.is-normal
               label.label ターゲット内リプライ検索数
             .field-body
               .field
                 .control
-                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text")
+                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
+                              v-model="params.repliesToSearch")
                 p.help.is-danger(v-if="!validatePOYOPOYO")
                   | This Field is required
           .field.is-horizontal
@@ -96,7 +95,18 @@
             .field-body
               .field
                 .control
-                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text")
+                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
+                              v-model="params.tweetsToSearch")
+                p.help.is-danger(v-if="!validatePOYOPOYO")
+                  | This Field is required
+          .field.is-horizontal
+            .field-label.is-normal
+              label.label FF比ホワイトリストしきい値
+            .field-body
+              .field
+                .control
+                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
+                              v-model="params.ffRateThreshould")
                 p.help.is-danger(v-if="!validatePOYOPOYO")
                   | This Field is required
 </template>
@@ -127,7 +137,18 @@ export default {
       userSelection: {},
       listSelectionMembers: [],
       userSearchQuery: '',
-      userSearchResult: []
+      userSearchResult: [],
+      whitelists: {
+        myFriend: true,
+        myFollower: true,
+        targetsFriend: true,
+        ffRate: false
+      },
+      params: {
+        repliesToSearch: 500,
+        tweetsToSearch: 10000,
+        ffRateThreshould: 3
+      }
     }
   },
   watch: {
@@ -344,11 +365,11 @@ export default {
     margin-right: 0.5rem
     transform: translateY(-1px)
 
-#optionWhiteList
+#optionsWhiteList
   > *
     margin: 0.2rem 0px
 
-#optionSearchParam
+#optionsSearchParam
   .label
     width: 14rem
     font-weight: 400
