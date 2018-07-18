@@ -319,8 +319,9 @@ export default {
   background: $primary
   border-radius: 50%
   color: white
+  font-family: 'Quicksand', sans-serif
   font-weight: 600
-  font-size: 1.5rem
+  font-size: 1.6rem
   display: flex
   align-items: center
   justify-content: center

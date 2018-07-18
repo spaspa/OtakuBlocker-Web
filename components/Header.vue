@@ -18,8 +18,9 @@
       p
         | Log in to twitter
     h1 Otaku Blocker
-    .dropdown.is-right(@click="dropdown = !dropdown"
-              :class="dropdown ? 'is-active' : ''")
+    .dropdown.is-right(v-if="authUser"
+                       @click="dropdown = !dropdown"
+                       :class="dropdown ? 'is-active' : ''")
       .dropdown-trigger
         span.icon.is-small(aria-haspopup="true", aria-controls="dropdown-menu")
           i.fas.fa-angle-down(aria-hidden="true")
@@ -139,6 +140,7 @@ h1
   font-weight: 600
   top: 10px
   left: 20px
+  font-family: 'Quicksand', sans-serif
 
 .dropdown
   left: calc(100vw - 3rem)
