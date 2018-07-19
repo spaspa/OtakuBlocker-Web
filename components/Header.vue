@@ -142,9 +142,14 @@ h1
   left: 20px
   font-family: 'Quicksand', sans-serif
 
+h1
+  @media screen and (max-width: 374px)
+    opacity: 0
+
 .dropdown
   left: calc(100vw - 3rem)
   top: 0.6rem
+  user-select: none
 
 .dropdown-trigger
   > span

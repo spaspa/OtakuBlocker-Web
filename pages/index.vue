@@ -283,7 +283,7 @@ export default {
     color: #ffffff
 
 .container
-  padding: 50px 20px
+  padding: 50px 15px 50px 20px
   max-width: 950px
   align-items: center
 
