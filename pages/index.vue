@@ -66,9 +66,26 @@
         h3 
           span.icon.is-small
             i.fas.fa-handshake
+          | 動作設定
+        .subcontainer.stack#optionsWhiteList
+          .control
+            label.checkbox
+              input(type="checkbox" v-model="generalSettings.useMute")
+              | ブロックの代わりにミュートを使う
+          .control
+            label.checkbox
+              input(type="checkbox" v-model="generalSettings.dryRun")
+              | dry-run(対象の検索まで行い、{{ blockMethodString }}を実行しない)
+          .control
+            label.checkbox
+              input(type="checkbox" v-model="generalSettings.excludeSelfReply")
+              | スレッドは対象に含めない
+        h3 
+          span.icon.is-small
+            i.fas.fa-handshake
           | ホワイトリスト
           small
-            | 以下のユーザーをブロック対象から除外します
+            | 以下のユーザーを{{ blockMethodString }}対象から除外します
         .subcontainer.stack#optionsWhiteList
           .control
             label.checkbox
@@ -109,7 +126,7 @@
                   | API制限({{ maximumRepliesToSearch }})を超えています
           .field.is-horizontal
             .field-label.is-normal
-              label.label ブロック対象ツイート検索数
+              label.label {{ blockMethodString }}対象ツイート検索数
             .field-body
               .field
                 .control
@@ -160,6 +177,8 @@ export default {
       userSearchResult: [],
       apiLimitExceed: false,
       generalSettings: {
+        useMute: false,
+        dryRun: false,
         excludeSelfReply: true
       },
       whitelistSettings: {
@@ -245,6 +264,9 @@ export default {
       }
       return 0
     },
+    blockMethodString () {
+      return this.generalSettings.useMute ? 'ミュート' : 'ブロック'
+    },
     ...mapState([
       'authUser',
       'userProfile',
@@ -266,20 +288,21 @@ export default {
       await this.$store.dispatch('logout')
     },
     async execute () {
-      if (!this.showModal && this.whitelist.size === 0) {
+      if (!this.showModal && this.executionStage < 1) {
         await this.prepareWhitelist()
       }
-      if (!this.showModal && this.replies.size === 0) {
+      if (!this.showModal && this.executionStage < 2) {
         await this.fetchReplies()
       }
-      if (!this.showModal && this.otakuIds.size === 0) {
+      if (!this.showModal && this.executionStage < 3) {
         await this.searchTweets()
       }
-      if (!this.showModal && this.otakuIds.size !== 0) {
+      if (!this.showModal && this.executionStage < 4) {
         await this.executeBlock()
       }
     },
     async prepareWhitelist () {
+      this.executionStage = 1
       // generate targets
       Object.keys(this.userSelection).forEach(id => {
         this.targetIds.add(id)
@@ -345,6 +368,7 @@ export default {
       this.whitelist = new Set(rawWhitelist)
     },
     async fetchReplies () {
+      this.executionStage = 2
       for (let id of this.targetIds) {
         try {
           const res = await axios.get('/api/twitter/util/concat_id/statuses/user_timeline', {
@@ -380,6 +404,7 @@ export default {
       }
     },
     async searchTweets () {
+      this.executionStage = 3
       const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.size)
       for (let q of this.searchQueries) {
         try {
@@ -404,7 +429,14 @@ export default {
       }
     },
     async executeBlock () {
-      console.log('Will block ' + this.otakuIds.size)
+      this.executionStage = 4
+      if (this.generalSettings.dryRun) {
+        return
+      }
+      const apiPath = this.generalSettings.useMute ? '/mutes/users/create' : '/blocks/create'
+      for (let user_id of this.otakuIds) {
+        axios.post('/api/twitter' + apiPath, { user_id })
+      }
     },
     onExecuteButtonClick () {
       if (this.authUser) {
@@ -442,6 +474,7 @@ export default {
     },
     onModalCancel () {
       this.showModal = false
+      this.executionStage = 0
     },
     onModalConfirm () {
       this.showModal = false
