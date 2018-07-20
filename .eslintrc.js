@@ -12,6 +12,7 @@ module.exports = {
   ],
   // add your custom rules here
   rules: {
+    'operator-linebreak': 'off',
     'camelcase': 'off',
     'brace-style': 'off'
   },
