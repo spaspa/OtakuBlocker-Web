@@ -88,7 +88,7 @@
                   input.input(:class="validateRepliesToSearch ? 'is-danger' : ''" type="text"
                               v-model.number="params.repliesToSearch")
                 p.help.is-danger(v-if="validateRepliesToSearch === 1")
-                  | API制限({{ maximumRepliesToSearch }})を超える値です
+                  | API制限({{ maximumRepliesToSearch }})を超えています
           .field.is-horizontal
             .field-label.is-normal
               label.label ブロック対象ツイート検索数
@@ -98,7 +98,7 @@
                   input.input(:class="validateTweetsToSearch ? 'is-danger' : ''" type="text"
                               v-model.number="params.tweetsToSearch")
                 p.help.is-danger(v-if="validateTweetsToSearch === 1")
-                  | API制限({{ maximumTweetsToSearch }})を超える値です
+                  | API制限({{ maximumTweetsToSearch }})を超えています
           .field.is-horizontal
             .field-label.is-normal
               label.label FF比ホワイトリストしきい値
@@ -192,7 +192,6 @@ export default {
     maximumTweetsToSearch () {
       return 180 * 100
     },
-    // 0: correct
     validateRepliesToSearch () {
       const parsed = parseInt(this.params.repliesToSearch)
       if (parsed > this.maximumRepliesToSearch) {
