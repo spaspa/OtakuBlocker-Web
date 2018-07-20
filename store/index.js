@@ -75,7 +75,7 @@ const store = () => new Vuex.Store({
       commit('setUserFriendIds', data)
     },
 
-    async fetchUserfollowersIds ({ commit, state }) {
+    async fetchUserFollowersIds ({ commit, state }) {
       const params = {
         user_id: state.authuser.user_id,
         count: 5000,
