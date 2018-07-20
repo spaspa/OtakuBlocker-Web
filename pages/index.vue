@@ -415,7 +415,8 @@ export default {
             }
           })
           data.forEach(status => {
-            if (!(this.whitelist.has(status.user.id_str))) {
+            if (!(this.whitelist.has(status.user.id_str))
+                && !(this.whitelistSettings.ffRate && status.user.followers_count / status.user.friends_count < this.params.ffRateThreshold)) {
               this.otakuIds.add(status.user.id_str)
               console.log('[search] add ' + status.user.screen_name)
             }
