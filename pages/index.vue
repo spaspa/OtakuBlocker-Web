@@ -65,7 +65,7 @@
           p ホワイトリストや検索件数などを設定します
         h3 
           span.icon.is-small
-            i.fas.fa-handshake
+            i.fas.fa-cog
           | 動作設定
         .subcontainer.stack#optionsWhiteList
           .control
@@ -111,7 +111,7 @@
               | FF比が{{ params.ffRateThreshold }}以上のユーザー
         h3 
           span.icon.is-small
-            i.fas.fa-cog
+            i.fas.fa-cogs
           | 詳細設定
         .subcontainer.stack#optionsSearchParam
           .field.is-horizontal
