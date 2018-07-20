@@ -22,6 +22,7 @@ const client = req => new Twitter({
 router.get('/twitter/util/concat_cursor/*', async (req, res, next) => {
   if (req.session && !req.session.oauth) {
     res.status(401).send('unauthorized')
+    return
   }
   const tmpClient = client(req)
   let data = []
@@ -33,6 +34,14 @@ router.get('/twitter/util/concat_cursor/*', async (req, res, next) => {
     let response = {}
     try {
       response = await tmpClient.get(req.params['0'], query)
+    }
+    catch (err) {
+      console.log('concat_cursor')
+      console.log(err)
+      res.status(500).json(err)
+      return
+    }
+    try {
       if (!key) {
         key = Object.keys(response).find(k => Array.isArray(response[k]))
       }
@@ -77,7 +86,9 @@ router.get('/twitter/util/concat_id/*', async (req, res, next) => {
       response = await tmpClient.get(req.params['0'], query)
     }
     catch (err) {
-      res.json(err)
+      console.log('concat_id')
+      console.log(err)
+      res.status(500).json(err)
     }
     data = data.concat(response)
     if (!response[response.length - 1]) {
@@ -106,11 +117,17 @@ router.get('/twitter/util/search_tweets', async (req, res, next) => {
       response = await tmpClient.get('/search/tweets', req.query)
     }
     catch (err) {
-      res.json(err)
+      console.log(err)
+      res.status(500).json(err)
     }
-    const next_results = response.search_metadata.next_results
-    data = data.concat(response.statuses)
-    maxId = querystring.parse(next_results).max_id
+    try {
+      const next_results = response.search_metadata.next_results
+      data = data.concat(response.statuses)
+      maxId = querystring.parse(next_results).max_id
+    }
+    catch (err) {
+      break
+    }
   }
   res.json(data)
 })

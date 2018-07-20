@@ -1,5 +1,17 @@
 <template lang="pug">
   section.container
+    Modal(v-if="showModal"
+          @modalCancel="onModalCancel"
+          @modalConfirm="onModalConfirm")
+      .modal-body(slot="body")
+        | API制限に達しました。
+        br
+        | ホワイトリスト等の機能が動作しない可能性がありますが、続けますか？
+      .modal-footer(slot="footer")
+        .button.is-danger.is-outline(@click="onModalCancel")
+          | やめる
+        .button.is-primary.is-outline(@click="onModalConfirm")
+          | 続ける
     Header(@executeButtonClick="onExecuteButtonClick")
     .container(v-if="!authUser")
     .container(v-if="authUser && executionStage === 0")
@@ -60,19 +72,25 @@
         .subcontainer.stack#optionsWhiteList
           .control
             label.checkbox
-              input(type="checkbox" v-model="whitelists.myFriend")
+              input(type="checkbox" v-model="whitelistSettings.myFriend")
               | 自分がフォローしているユーザー
           .control
             label.checkbox
-              input(type="checkbox" v-model="whitelists.myFollower")
+              input(type="checkbox" v-model="whitelistSettings.myFollower")
               | 自分のフォロワー
           .control
             label.checkbox
-              input(type="checkbox" v-model="whitelists.targetsFriend")
+              input(type="checkbox"
+                    v-model="whitelistSettings.targetsFriend"
+                    :disabled="apiLimitExceed || totalUsersCount >= 15")
               | ターゲットがフォローしているユーザー
+              p.help.is-danger(v-if="totalUsersCount >= 15")
+                | 15人以上選択時にこの機能は使えません
+              p.help.is-danger(v-if="apiLimitExceed")
+                | API制限を超えています
           .control
             label.checkbox
-              input(type="checkbox" v-model="whitelists.ffRate")
+              input(type="checkbox" v-model="whitelistSettings.ffRate")
               | FF比が{{ params.ffRateThreshold }}以上のユーザー
         h3 
           span.icon.is-small
@@ -115,12 +133,14 @@ import { mapState, mapGetters } from 'vuex'
 import Header from '~/components/Header'
 import ListItem from '~/components/ListItem'
 import UserItem from '~/components/UserItem'
+import Modal from '~/components/Modal'
 
 export default {
   components: {
     Header,
     ListItem,
-    UserItem
+    UserItem,
+    Modal
   },
   async mounted () {
     if (this.$store.state.authUser) {
@@ -130,6 +150,7 @@ export default {
   },
   data () {
     return {
+      showModal: false,
       executionStage: 0,
       totalUsersCount: 0,
       listSelection: {},
@@ -137,7 +158,11 @@ export default {
       listSelectionMembers: [],
       userSearchQuery: '',
       userSearchResult: [],
-      whitelists: {
+      apiLimitExceed: false,
+      generalSettings: {
+        excludeSelfReply: true
+      },
+      whitelistSettings: {
         myFriend: true,
         myFollower: true,
         targetsFriend: true,
@@ -147,7 +172,13 @@ export default {
         repliesToSearch: 500,
         tweetsToSearch: 10000,
         ffRateThreshold: 3
-      }
+      },
+      targetIds: new Set(),
+      targetScreenNames: new Set(),
+      whitelist: new Set(),
+      replies: new Set(),
+      searchQueries: new Set(),
+      otakuIds: new Set()
     }
   },
   watch: {
@@ -170,6 +201,14 @@ export default {
         }
       const { data } = await axios.get(apiPath, { params })
       this.userSearchResult = Array.isArray(data) ? data : [data]
+    },
+    totalUsersCount (newVal, oldVal) {
+      if (newVal >= 15) {
+        this.whitelistSettings.targetsFriend = false
+      }
+      else if (oldVal >= 15 && newVal < 15) {
+        this.whitelistSettings.targetsFriend = true
+      }
     }
   },
   computed: {
@@ -177,12 +216,12 @@ export default {
       return this.userProfile ? this.userProfile.profile_image_url_https : ''
     },
     selectedUsers () {
-      let result = []
+      const result = []
       for (let key of Object.keys(this.listSelection)) {
-        result = result.concat(this.listSelection[key])
+        result.push(...this.listSelection[key])
       }
       for (let key of Object.keys(this.userSelection)) {
-        result = result.concat(this.userSelection[key])
+        result.push(this.userSelection[key])
       }
       return result
     },
@@ -227,12 +266,154 @@ export default {
       await this.$store.dispatch('logout')
     },
     async execute () {
-      const po = await axios.get('/api/twitter/statuses/update', {
-        params: {
-          status: 'poyo'
-        }
+      if (!this.showModal && this.whitelist.size === 0) {
+        await this.prepareWhitelist()
+      }
+      if (!this.showModal && this.replies.size === 0) {
+        await this.fetchReplies()
+      }
+      if (!this.showModal && this.otakuIds.size === 0) {
+        await this.searchTweets()
+      }
+      if (!this.showModal && this.otakuIds.size !== 0) {
+        await this.executeBlock()
+      }
+    },
+    async prepareWhitelist () {
+      // generate targets
+      Object.keys(this.userSelection).forEach(id => {
+        this.targetIds.add(id)
+        this.targetScreenNames.add('@' + this.userSelection[id].screen_name)
+        console.log('[wlist] add @' + this.userSelection[id].screen_name)
       })
-      console.log(po)
+      for (let id of Object.keys(this.listSelection)) {
+        const { data } = await axios.get('/api/twitter/util/concat_cursor/lists/members', {
+          params: {
+            list_id: id,
+            key: 'users'
+          }
+        })
+        data.forEach(user => {
+          this.targetIds.add(user.id_str)
+          this.targetScreenNames.add('@' + user.screen_name)
+          console.log('[wlist] add @' + user.screen_name)
+        })
+      }
+      // generate whitelist
+      const rawWhitelist = []
+      this.targetIds.forEach(id => {
+        rawWhitelist.push(id)
+      })
+      if (this.whitelistSettings.myFriend) {
+        try {
+          await this.$store.dispatch('fetchUserFriendIds')
+          rawWhitelist.push(...this.$store.state.userFriendIds)
+        }
+        catch (err) {
+          this.apiLimitExceed = true
+          this.showModal = true
+        }
+      }
+      if (this.whitelistSettings.myFollower) {
+        try {
+          await this.$store.dispatch('fetchUserFollowersIds')
+          rawWhitelist.push(...this.$store.state.userFollowersIds)
+        }
+        catch (err) {
+          this.apiLimitExceed = true
+          this.showModal = true
+        }
+      }
+      if (this.whitelistSettings.targetsFriend) {
+        for (let id of this.targetIds) {
+          try {
+            const { data } = await axios.get('/api/twitter/util/concat_cursor/friends/ids', {
+              params: {
+                id: id,
+                key: 'ids'
+              }
+            })
+            rawWhitelist.push(...data)
+          }
+          catch (err) {
+            console.log(err)
+            this.apiLimitExceed = true
+            this.showModal = true
+          }
+        }
+      }
+      this.whitelist = new Set(rawWhitelist)
+    },
+    async fetchReplies () {
+      for (let id of this.targetIds) {
+        try {
+          const res = await axios.get('/api/twitter/util/concat_id/statuses/user_timeline', {
+            params: {
+              user_id: id,
+              max_count: 200,
+              count: this.params.repliesToSearch,
+              include_rts: false
+            }
+          })
+          console.log(res)
+          const data = res.data
+          data.forEach(status => {
+            const replyUserId = status.in_reply_to_user_id_str
+            const replyUserScreenName = status.in_reply_to_screen_name
+            if (replyUserId
+                && this.targetIds.has(replyUserId)
+                && !(this.generalSettings.excludeSelfReply && replyUserId === status.user.id_str)) {
+              this.replies.add(status.id_str)
+              if (!(this.searchQueries.has('@' + status.user.screen_name + ' @' + replyUserScreenName)
+                    || this.searchQueries.has('@' + replyUserScreenName + ' @' + status.user.screen_name))) {
+                this.searchQueries.add('@' + status.user.screen_name + ' @' + replyUserScreenName)
+                console.log('[reply] add ' + '@' + status.user.screen_name + ' @' + replyUserScreenName)
+              }
+            }
+          })
+        }
+        catch (err) {
+          this.apiLimitExceed = true
+          this.showModal = true
+          return
+        }
+      }
+    },
+    async searchTweets () {
+      const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.size)
+      for (let q of this.searchQueries) {
+        try {
+          const { data } = await axios.get('/api/twitter/util/search_tweets', {
+            params: {
+              q: q + ' exclude:retweets',
+              count: count
+            }
+          })
+          data.forEach(status => {
+            if (!(this.whitelist.has(status.user.id_str))) {
+              this.otakuIds.add(status.user.id_str)
+              console.log('[search] add ' + status.user.screen_name)
+            }
+          })
+        }
+        catch (err) {
+          this.apiLimitExceed = true
+          this.showModal = true
+          return
+        }
+      }
+    },
+    async executeBlock () {
+      console.log('Will block ' + this.otakuIds.size)
+    },
+    onExecuteButtonClick () {
+      if (this.authUser) {
+        this.whitelist = new Set([])
+        this.execute()
+      }
+      else {
+        this.login()
+      }
     },
     async onListItemSelect (id) {
       const { data } = await axios.get('/api/twitter/lists/members', {
@@ -259,13 +440,12 @@ export default {
         this.$delete(this.userSelection, id)
       }
     },
-    onExecuteButtonClick () {
-      if (this.authUser) {
-        this.execute()
-      }
-      else {
-        this.login()
-      }
+    onModalCancel () {
+      this.showModal = false
+    },
+    onModalConfirm () {
+      this.showModal = false
+      this.execute()
     }
   }
 }
@@ -397,4 +577,10 @@ export default {
 
 .help
   text-align: left
+
+.modal-footer
+  margin: 1rem
+  > *
+    margin: 0rem 1rem
+    font-width: 600
 </style>
