@@ -2,7 +2,7 @@
   section.container
     Header(@executeButtonClick="onExecuteButtonClick")
     .container(v-if="!authUser")
-    .container(v-if="authUser")
+    .container(v-if="authUser && executionStage === 0")
       .box.stepContent#box1
         .numberCircle
           p 1
@@ -73,7 +73,7 @@
           .control
             label.checkbox
               input(type="checkbox" v-model="whitelists.ffRate")
-              | FF比が{{ params.ffRateThreshould }}以上のユーザー
+              | FF比が{{ params.ffRateThreshold }}以上のユーザー
         h3 
           span.icon.is-small
             i.fas.fa-cog
@@ -85,30 +85,28 @@
             .field-body
               .field
                 .control
-                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
-                              v-model="params.repliesToSearch")
-                p.help.is-danger(v-if="!validatePOYOPOYO")
-                  | This Field is required
+                  input.input(:class="validateRepliesToSearch ? 'is-danger' : ''" type="text"
+                              v-model.number="params.repliesToSearch")
+                p.help.is-danger(v-if="validateRepliesToSearch === 1")
+                  | API制限({{ maximumRepliesToSearch }})を超える値です
           .field.is-horizontal
             .field-label.is-normal
               label.label ブロック対象ツイート検索数
             .field-body
               .field
                 .control
-                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
-                              v-model="params.tweetsToSearch")
-                p.help.is-danger(v-if="!validatePOYOPOYO")
-                  | This Field is required
+                  input.input(:class="validateTweetsToSearch ? 'is-danger' : ''" type="text"
+                              v-model.number="params.tweetsToSearch")
+                p.help.is-danger(v-if="validateTweetsToSearch === 1")
+                  | API制限({{ maximumTweetsToSearch }})を超える値です
           .field.is-horizontal
             .field-label.is-normal
               label.label FF比ホワイトリストしきい値
             .field-body
               .field
                 .control
-                  input.input(:class="!validatePOYOPOYO ? 'is-danger' : ''" type="text"
-                              v-model="params.ffRateThreshould")
-                p.help.is-danger(v-if="!validatePOYOPOYO")
-                  | This Field is required
+                  input.input(v-model.number="params.ffRateThreshold")
+    .container(v-if="authUser && executionStage === 1")
 </template>
 
 <script>
@@ -132,6 +130,7 @@ export default {
   },
   data () {
     return {
+      executionStage: 0,
       totalUsersCount: 0,
       listSelection: {},
       userSelection: {},
@@ -147,7 +146,7 @@ export default {
       params: {
         repliesToSearch: 500,
         tweetsToSearch: 10000,
-        ffRateThreshould: 3
+        ffRateThreshold: 3
       }
     }
   },
@@ -187,8 +186,26 @@ export default {
       }
       return result
     },
-    validatePOYOPOYO () {
-      return true
+    maximumRepliesToSearch () {
+      return Math.floor(900 / (this.totalUsersCount <= 1 ? 1 : this.totalUsersCount)) * 200
+    },
+    maximumTweetsToSearch () {
+      return 180 * 100
+    },
+    // 0: correct
+    validateRepliesToSearch () {
+      const parsed = parseInt(this.params.repliesToSearch)
+      if (parsed > this.maximumRepliesToSearch) {
+        return 1
+      }
+      return 0
+    },
+    validateTweetsToSearch () {
+      const parsed = parseInt(this.params.tweetsToSearch)
+      if (parsed > this.maximumTweetsToSearch) {
+        return 1
+      }
+      return 0
     },
     ...mapState([
       'authUser',
@@ -207,12 +224,16 @@ export default {
     login () {
       location.href = '/api/auth'
     },
-    async fetch () {
-      await this.$store.dispatch('fetchUserFriends')
-      await this.$store.dispatch('fetchUserFollowers')
-    },
     async logout () {
       await this.$store.dispatch('logout')
+    },
+    async execute () {
+      const po = await axios.get('/api/twitter/statuses/update', {
+        params: {
+          status: 'poyo'
+        }
+      })
+      console.log(po)
     },
     async onListItemSelect (id) {
       const { data } = await axios.get('/api/twitter/lists/members', {
@@ -241,7 +262,7 @@ export default {
     },
     onExecuteButtonClick () {
       if (this.authUser) {
-
+        this.execute()
       }
       else {
         this.login()
