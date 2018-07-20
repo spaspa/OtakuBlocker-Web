@@ -13,22 +13,31 @@ const client = req => new Twitter({
 })
 
 // An API wrapper for cursoring.
-// Parameter "key" represents attribute for main content array in response. 
+//
+// Parameter "key" represents attribute for main content array in response.
+// If omitted, key will be automatically selected.
+//
+// Usage: Get all friends.
+//   GET /twitter/util/concat_cursor/friends/ids
 router.get('/twitter/util/concat_cursor/*', async (req, res, next) => {
   if (req.session && !req.session.oauth) {
     res.status(401).send('unauthorized')
   }
-  req.query.cursor = -1
-  const key = req.query.key ? req.query.key : 'users'
-
   const tmpClient = client(req)
   let data = []
+  let key = req.query.key
+  const query = req.query
+  query.cursor = -1
+
   while (req.query.cursor !== 0) {
     let response = {}
     try {
-      response = await tmpClient.get(req.params['0'], req.query)
+      response = await tmpClient.get(req.params['0'], query)
+      if (!key) {
+        key = Object.keys(response).find(k => Array.isArray(response[k]))
+      }
       data = data.concat(response[key])
-      req.query.cursor = response.next_cursor
+      query.cursor = response.next_cursor
     }
     catch (err) {
       console.log(err)
@@ -39,8 +48,10 @@ router.get('/twitter/util/concat_cursor/*', async (req, res, next) => {
 })
 
 // An API wrapper for concatenating by max_id.
+//
 // Assuming that response is an array. 
 // Parameter "max_count" is passed to API as "count" parameter.
+//
 // Usage: Get 1000 tweets from @twitter by collecting 100 tweets per each API call.
 //   GET /twitter/util/concat_id/statuses/user_timeline?screen_name=twtiter&count=1000&max_count=100
 router.get('/twitter/util/concat_id/*', async (req, res, next) => {
@@ -50,18 +61,20 @@ router.get('/twitter/util/concat_id/*', async (req, res, next) => {
   const maxCount = req.query.max_count ? req.query.max_count : 200
   const totalCount = req.query.count ? req.query.count : maxCount
   delete req.query.max_count
-  req.query.count = maxCount
 
   const tmpClient = client(req)
   let data = []
   let maxId = -1
+  const query = req.query
+  query.count = maxCount
+
   while (data.length < totalCount) {
     if (maxId !== -1) {
       req.query.max_id = maxId
     }
     let response = []
     try {
-      response = await tmpClient.get(req.params['0'], req.query)
+      response = await tmpClient.get(req.params['0'], query)
     }
     catch (err) {
       res.json(err)
@@ -111,8 +124,7 @@ router.get('/twitter/*', (req, res, next) => {
       res.json(response)
     })
     .catch(err => {
-      console.log(err)
-      next(err)
+      res.json(err)
     })
 })
 
@@ -125,8 +137,7 @@ router.post('/twitter/*', (req, res, next) => {
       res.json(response)
     })
     .catch(err => {
-      console.log(err)
-      next(err)
+      res.json(err)
     })
 })
 
