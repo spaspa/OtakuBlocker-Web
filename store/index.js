@@ -71,18 +71,18 @@ const store = () => new Vuex.Store({
         skip_status: true,
         include_user_entities: false
       }
-      const { data } = await axios.get('/api/twitter/followers/ids', { params })
+      const { data } = await axios.get('/api/twitter/util/concat_cursor/followers/ids', { params })
       commit('setUserFriendIds', data)
     },
 
-    async fetchUserfollowersids ({ commit, state }) {
+    async fetchUserfollowersIds ({ commit, state }) {
       const params = {
         user_id: state.authuser.user_id,
         count: 5000,
         skip_status: true,
         include_user_entities: false
       }
-      const { data } = await axios.get('/api/twitter/friends/ids', { params })
+      const { data } = await axios.get('/api/twitter/util/concat_cursor/friends/ids', { params })
       commit('setUserfollowersids', data)
     },
 
