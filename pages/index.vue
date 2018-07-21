@@ -12,9 +12,11 @@
           | やめる
         .button.is-primary.is-outline(@click="onModalConfirm")
           | 続ける
-    Header(@executeButtonClick="onExecuteButtonClick")
+    Header(:status="executionStage === 5 ? 'Done' : executionStage > 0 ? 'Wait' : ''"
+           :disabled="executionStage > 0 && executionStage !== 5"
+           @executeButtonClick="onExecuteButtonClick")
     .container(v-if="!authUser")
-    .container(v-if="authUser && executionStage === 0")
+    .container(v-if="authUser" :class="executionStage === 0 ? 'mainContainerActive' : 'mainContainerInActive'")
       .box.stepContent#box1
         .numberCircle
           p 1
@@ -76,10 +78,6 @@
             label.checkbox
               input(type="checkbox" v-model="generalSettings.dryRun")
               | dry-run(対象の検索まで行い、{{ blockMethodString }}を実行しない)
-          .control
-            label.checkbox
-              input(type="checkbox" v-model="generalSettings.excludeSelfReply")
-              | スレッドは対象に含めない
         h3 
           span.icon.is-small
             i.fas.fa-handshake
@@ -141,7 +139,32 @@
               .field
                 .control
                   input.input(v-model.number="params.ffRateThreshold")
-    .container(v-if="authUser && executionStage === 1")
+    .statusArea(:class="classStatusArea")
+      .statusAreaBg(:class="classStatusAreaBg")
+      transition
+        .statusDetail(v-if="executionStage >= 1")
+          .statusStep
+            p 1
+          .statusDescription
+            p {{ stage1Description }}
+      transition
+        .statusDetail(v-if="executionStage >= 2")
+          .statusStep
+            p 2
+          .statusDescription
+            p {{ stage2Description }}
+      transition
+        .statusDetail(v-if="executionStage >= 3")
+          .statusStep
+            p 3
+          .statusDescription
+            p {{ stage3Description }}
+      transition
+        .statusDetail(v-if="executionStage >= 4")
+          .statusStep
+            p 4
+          .statusDescription
+            p {{ stage4Description }}
 </template>
 
 <script>
@@ -178,8 +201,7 @@ export default {
       apiLimitExceed: false,
       generalSettings: {
         useMute: false,
-        dryRun: false,
-        excludeSelfReply: true
+        dryRun: false
       },
       whitelistSettings: {
         myFriend: true,
@@ -197,7 +219,8 @@ export default {
       whitelist: new Set(),
       replies: new Set(),
       searchQueries: new Set(),
-      otakuIds: new Set()
+      otakuIds: new Set(),
+      blockedCount: 0
     }
   },
   watch: {
@@ -266,6 +289,47 @@ export default {
     },
     blockMethodString () {
       return this.generalSettings.useMute ? 'ミュート' : 'ブロック'
+    },
+    classStatusArea () {
+      return this.executionStage > 0 ? 'statusAreaActive' : 'statusAreaInActive'
+    },
+    classStatusAreaBg () {
+      return this.executionStage > 0 ? 'statusAreaBgActive' : 'statusAreaBgInActive'
+    },
+    stage1Description () {
+      if (this.executionStage === 1) {
+        return 'ホワイトリストを作成しています...'
+      }
+      else {
+        return `${this.whitelist.size}件のホワイトリストを作成しました！`
+      }
+    },
+    stage2Description () {
+      if (this.executionStage === 2) {
+        return '検索クエリを作成しています...'
+      }
+      else {
+        return `${this.searchQueries.size}件の検索クエリを作成しました！`
+      }
+    },
+    stage3Description () {
+      if (this.executionStage === 3) {
+        return 'ツイートを検索しています...'
+      }
+      else {
+        return `${this.otakuIds.size}人の${this.blockMethodString}対象ユーザーを発見しました！`
+      }
+    },
+    stage4Description () {
+      if (this.generalSettings.dryRun) {
+        return `dry-runが有効のため${this.blockMethodString}を実行しませんでした`
+      }
+      if (this.executionStage === 4) {
+        return `${this.blockMethodString}を実行しています...`
+      }
+      else {
+        return `${this.blockedCount}人${this.blockMethodString}しました！`
+      }
     },
     ...mapState([
       'authUser',
@@ -386,7 +450,7 @@ export default {
             const replyUserScreenName = status.in_reply_to_screen_name
             if (replyUserId
                 && this.targetIds.has(replyUserId)
-                && !(this.generalSettings.excludeSelfReply && replyUserId === status.user.id_str)) {
+                && replyUserId !== status.user.id_str) {
               this.replies.add(status.id_str)
               if (!(this.searchQueries.has('@' + status.user.screen_name + ' @' + replyUserScreenName)
                     || this.searchQueries.has('@' + replyUserScreenName + ' @' + status.user.screen_name))) {
@@ -436,11 +500,22 @@ export default {
       }
       const apiPath = this.generalSettings.useMute ? '/mutes/users/create' : '/blocks/create'
       for (let user_id of this.otakuIds) {
-        axios.post('/api/twitter' + apiPath, { user_id })
+        try {
+          axios.post('/api/twitter' + apiPath, { user_id })
+        }
+        catch (err) {
+          console.log(err)
+          continue
+        }
+        this.blockedCount += 1
       }
+      this.executionStage = 5
     },
     onExecuteButtonClick () {
-      if (this.authUser) {
+      if (this.executionStage === 5) {
+        location.href = `http://twitter.com/share?url=${process.env.URL}&text=${this.targetIds.size}人の会話を守りました！&hashtags=OtakuBlocker`
+      }
+      else if (this.authUser) {
         this.whitelist = new Set([])
         this.execute()
       }
@@ -491,31 +566,6 @@ export default {
 .profileImage
   border-radius: 50%
 
-@mixin disable-button-styling
-  border: none
-  cursor: pointer
-  outline: none
-  padding: 0
-  appearance: none
-  text-decoration: none
-
-.authButton
-  @include disable-button-styling
-  width: 12rem
-  height: 4rem
-  font-size: 1.1rem
-  text-align: center
-  text-decoration: none
-  border-radius: 3px
-  border: solid 1px #00aced
-  background: #ffffff
-  color: #00aced
-  transition: all 0.2s ease
-
-  &:hover
-    background: #00aced
-    color: #ffffff
-
 .container
   padding: 50px 15px 50px 20px
   max-width: 950px
@@ -523,6 +573,14 @@ export default {
 
 .box
   border-width: 0px !important
+
+.mainContainerActive
+  transition: all 0.2s ease
+  transform: translateY(0px)
+
+.mainContainerInActive
+  transition: all 0.2s ease
+  transform: translateY(100vh)
 
 .stepContent
   position: relative
@@ -617,4 +675,68 @@ export default {
   > *
     margin: 0rem 1rem
     font-width: 600
+
+.statusArea
+  position: fixed
+  top: 220px
+  left: 0px
+  display: flex
+  align-items: center
+  flex-direction: column
+  width: 100vw
+
+.statusAreaInActive
+  opacity: 0
+
+.statusAreaActive
+  opacity: 1
+
+.statusDetail
+  width: 70vw
+  max-width: 500px
+  display: flex
+  align-items: center
+  margin: 1rem
+
+.statusStep
+  width: 40px
+  height: 40px
+  min-width: 40px
+  min-height: 40px
+  background: #ffffff
+  color: $primary
+  font-family: 'Quicksand', sans-serif
+  border-radius: 50px
+  font-weight: 600
+  font-size: 1.2rem
+  display: flex
+  align-items: center
+  justify-content: center
+
+.statusDescription
+  color: white
+  margin-left: 1rem
+  font-weight: 400
+
+.statusAreaBg
+  z-index: -1
+  background-color: $primary
+  position: fixed
+  border-radius: 50%
+  position: fixed
+  top: 10px
+  left: 50%
+
+.statusAreaBgInActive
+  transition: all 0.1s ease
+  width: 10px
+  height: 10px
+  transform: translate(-50%, 30px)
+
+.statusAreaBgActive
+  transition: all 2s cubic-bezier(0,.79,.31,.87)
+  width: 300vh
+  height: 300vh
+  transform: translate(-50%, -150vh)
+
 </style>

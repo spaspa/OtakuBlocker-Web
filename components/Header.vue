@@ -10,15 +10,24 @@
       path.st0(d="M602.2,0v64c-81.9,0-213.3,0-250.3,47.5c-0.1,0.2-0.2,0.3-0.4,0.5c-11.6,15.2-29.9,25-50.5,25 s-38.9-9.8-50.5-25c-0.1-0.2-0.3-0.3-0.4-0.5C213.1,64,81.7,64-0.2,64V0H602.2z")
       path.st0(d="M1311.2,0v64c-82.2,0-214.2,0-250.7,48h-101C923,64,791,64,708.8,64V0H1311.2z")
       circle.st0(cx="1010" cy="73.5" r="63.5")
-    a.button.is-primary.is-rounded.is-large#executeButton(@click="$emit('executeButtonClick')")
+    a.button.is-primary.is-rounded.is-large#executeButton(@click="onButtonClick"
+                                                          :class="disabled ? 'buttonDisabled is-disabled' : 'buttonEnabled'")
       span.icon.is-large
-        i.fas.fa-ban.fa-lg(v-if="authUser")
+        i.fas.fa-spinner.fa-spin.fa-lg(v-if="status === 'Wait'")
+        i.fas.fa-check.fa-lg(v-else-if="status === 'Done'")
+        i.fas.fa-ban.fa-lg(v-else-if="authUser")
         i.fab.fa-twitter.fa-lg(v-else)
-    #headerBaloon(v-if="!authUser")
+    .headerBaloon(v-if="!authUser")
       p
-        | Log in to twitter
+        | Log in to Twitter
+    transition(v-else-if="status === 'Wait' || status === 'Done'")
+      .headerBaloon(:class="buruburuEnabled ? 'buruburuBaloon' : ''")
+        p(v-if="status === 'Wait'")
+          | Please Wait...
+        p(v-if="status === 'Done'")
+          | Done! Share it?
     h1 Otaku Blocker
-    .dropdown.is-right(v-if="authUser"
+    .dropdown.is-right(v-if="authUser && !disabled"
                        @click="dropdown = !dropdown"
                        :class="dropdown ? 'is-active' : ''")
       .dropdown-trigger
@@ -44,8 +53,13 @@ import { mapState, mapGetters } from 'vuex'
 export default {
   data () {
     return {
-      dropdown: false
+      dropdown: false,
+      buruburuEnabled: false
     }
+  },
+  props: {
+    status: '',
+    disabled: false
   },
   computed: {
     ...mapState([
@@ -60,6 +74,14 @@ export default {
   methods: {
     login () {
       location.href = '/api/auth'
+    },
+    onButtonClick () {
+      if (!this.disabled) {
+        this.$emit('executeButtonClick')
+      }
+      else {
+        this.buruburuEnabled = !this.buruburuEnabled
+      }
     }
   }
 }
@@ -67,6 +89,7 @@ export default {
 
 <style lang="sass" scoped>
 @import "~/assets/css/main.sass"
+
 
 .header
   position: fixed
@@ -99,12 +122,16 @@ export default {
   top: 10px
   left: 50%
   transform: translate(-50%, 0px)
-  box-shadow: 3px 3px 12px 0px rgba(0, 0, 0, 0.3)
   display: flex
   align-items: center
   justify-content: center
 
-#headerBaloon
+.buttonEnabled
+  box-shadow: 3px 3px 12px 0px rgba(0, 0, 0, 0.3)
+.buttonDisabled
+  box-shadow: 1px 1px 4px 0px rgba(0, 0, 0, 0.1)
+
+.headerBaloon
   position: fixed
   left: 50%
   transform: translate(-50%, 120px)
@@ -133,6 +160,18 @@ export default {
     border-top: solid 1px $primary
     border-left: solid 1px $primary
     background: #ffffff
+
+.buruburuBaloon
+  animation: buruburuBaloonAnimation .1s  infinite;
+  &:before
+    translate(-16px, calc(-100% + 16px)) rotate(45deg)
+
+@keyframes buruburuBaloonAnimation
+  0% {transform: translate(-50%, 120px) rotateZ(0deg)}
+  25% {transform: translate(calc(-50% + 2px), 122px) rotateZ(1deg)}
+  50% {transform: translate(-50%, 122px) rotateZ(0deg)}
+  75% {transform: translate(calc(-50% + 2px), 120px) rotateZ(-1deg)}
+  100% {transform: translate(-50%, 120px) rotateZ(0deg)}
 
 h1
   color: white

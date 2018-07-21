@@ -26,6 +26,9 @@ module.exports = {
     '@fortawesome/fontawesome-free-webfonts/css/fa-regular.css',
     '@fortawesome/fontawesome-free-webfonts/css/fa-solid.css'
   ],
+  modules: [
+    '@nuxtjs/dotenv'
+  ],
   /*
   ** Add axios globally
   */
