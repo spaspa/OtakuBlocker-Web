@@ -17,15 +17,18 @@
         i.fas.fa-check.fa-lg(v-else-if="status === 'Done'")
         i.fas.fa-ban.fa-lg(v-else-if="authUser")
         i.fab.fa-twitter.fa-lg(v-else)
-    .headerBaloon(v-if="!authUser")
+    .headerBaloon(v-if="!authUser"
+                  :class="baloonClass")
       p
         | Log in to Twitter
-    transition(v-else-if="status === 'Wait' || status === 'Done'")
-      .headerBaloon(:class="buruburuEnabled ? 'buruburuBaloon' : ''")
-        p(v-if="status === 'Wait'")
-          | Please Wait...
-        p(v-if="status === 'Done'")
-          | Done! Share it?
+    .headerBaloon(v-else-if="authUser && startable"
+                  :class="baloonWithBuruburuClass")
+      p(v-if="status === 'Wait'")
+        | Please Wait...
+      p(v-else-if="status === 'Done'")
+        | Done! Share it?
+      p(v-else)
+        | Click to start!
     h1 Otaku Blocker
     .dropdown.is-right(v-if="authUser && !disabled"
                        @click="dropdown = !dropdown"
@@ -59,12 +62,20 @@ export default {
   },
   props: {
     status: '',
-    disabled: false
+    disabled: false,
+    startable: false
   },
   computed: {
     ...mapState([
+      'scrollY',
       'authUser'
     ]),
+    baloonClass () {
+      return this.scrollY < 50 ? 'baloonActive' : 'baloonInactive'
+    },
+    baloonWithBuruburuClass () {
+      return this.baloonClass + ' ' + (this.buruburuEnabled ? 'buruburuBaloon' : '')
+    },
     ...mapGetters([
       'userName',
       'userScreenName',
@@ -148,7 +159,7 @@ export default {
   border: solid 1px $primary
   background: #ffffff
   color: $primary
-  transition: all 0.2s ease
+  transition: all 0.5s ease
 
   &:before
     content: ""
@@ -160,6 +171,14 @@ export default {
     border-top: solid 1px $primary
     border-left: solid 1px $primary
     background: #ffffff
+
+.baloonInactive
+  transform: translate(-50%, 100px)
+  opacity: 0
+
+.baloonActive
+  transform: translate(-50%, 120px)
+  opacity: 1
 
 .buruburuBaloon
   animation: buruburuBaloonAnimation .1s  infinite;
@@ -212,4 +231,14 @@ h1
 #userScreenName
   font-size: 0.8rem
 
+.fade-enter-active
+  transition: all .5s
+.fade-leave-active
+  transition: all .5s
+.fade-enter
+  transform: translateY(-10px)
+  opacity: 0
+.fade-leave-to
+  transform: translateY(-10px)
+  opacity: 0
 </style>

@@ -11,6 +11,19 @@ import MyFooter from '~/components/Footer.vue'
 export default {
   components: {
     MyFooter
+  },
+  mounted () {
+    window.addEventListener('scroll', this.onScroll)
+    window.addEventListener('resize', this.onResize)
+    window.addEventListener('load', () => {
+      this.onScroll()
+      this.onResize()
+    })
+  },
+  methods: {
+    onScroll () {
+      this.$store.commit('setScrollY', window.pageYOffset)
+    }
   }
 }
 </script>

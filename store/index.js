@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 
 const store = () => new Vuex.Store({
   state: {
+    scrollY: 0,
     authUser: null,
     userProfile: null,
     userLists: null,
@@ -11,6 +12,9 @@ const store = () => new Vuex.Store({
   },
 
   mutations: {
+    setScrollY: function (state, payload) {
+      state.scrollY = payload
+    },
     setUser: function (state, user) {
       state.authUser = user
     },
