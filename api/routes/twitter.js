@@ -117,8 +117,13 @@ router.get('/twitter/util/search_tweets', async (req, res, next) => {
       response = await tmpClient.get('/search/tweets', req.query)
     }
     catch (err) {
-      console.log(err)
-      res.status(500).json(err)
+      if (data.length === 0) {
+        console.log(err)
+        res.status(500).json(err)
+      }
+      else {
+        break
+      }
     }
     try {
       const next_results = response.search_metadata.next_results
