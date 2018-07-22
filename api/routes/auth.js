@@ -48,4 +48,14 @@ router.get('/auth/callback', function (req, res) {
   }
 })
 
+router.get('/auth/logout', function (req, res) {
+  if (req.session.user_profile) {
+    delete req.session.user_profile
+  }
+  if (req.session.oauth) {
+    delete req.session.oauth
+  }
+  res.redirect('/')
+})
+
 module.exports = router

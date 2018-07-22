@@ -89,7 +89,10 @@ const store = () => new Vuex.Store({
     },
 
     async logout ({ commit }) {
-      await axios.post('/api/logout')
+      commit('setUserProfile', null)
+      commit('setUserLists', null)
+      commit('setUserFollowersIds', null)
+      commit('setUserFriendIds', null)
       commit('setUser', null)
     }
   },

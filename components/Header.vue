@@ -41,7 +41,7 @@
                 p#userName {{ userName }}
                 p#userScreenName @{{ userScreenName }}
             hr.dropdown-divider
-            a.dropdown-item(href="#")
+            a.dropdown-item(@click="$emit('logoutClick')")
               span.icon.is-small
                 i.fas.fa-sign-out
               | Logout
@@ -186,6 +186,7 @@ h1
     opacity: 0
 
 .dropdown
+  z-index: 9999
   left: calc(100vw - 3rem)
   top: 0.6rem
   user-select: none

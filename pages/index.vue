@@ -14,7 +14,8 @@
           | 続ける
     Header(:status="executionStage === 5 ? 'Done' : executionStage > 0 ? 'Wait' : ''"
            :disabled="executionStage > 0 && executionStage !== 5"
-           @executeButtonClick="onExecuteButtonClick")
+           @executeButtonClick="onExecuteButtonClick"
+           @logoutClick="logout")
     .container(v-if="!authUser")
     .container(v-if="authUser" :class="executionStage === 0 ? 'mainContainerActive' : 'mainContainerInActive'")
       .box.stepContent#box1
@@ -363,7 +364,8 @@ export default {
       location.href = '/api/auth'
     },
     async logout () {
-      await this.$store.dispatch('logout')
+      this.$store.dispatch('logout')
+      location.href = '/api/auth/logout'
     },
     async execute () {
       if (!this.showModal && this.executionStage < 1) {
