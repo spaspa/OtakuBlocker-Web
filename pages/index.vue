@@ -76,6 +76,13 @@
               | ブロックの代わりにミュートを使う
           .control
             label.checkbox
+              input(type="checkbox" v-model="generalSettings.expressMode")
+              | 高速モード(検索クエリを全パターン作成する)
+              p.help.is-danger(v-if="totalUsersCount >= 20"
+                               :disabled="totalUsersCount >= 20")
+                | 20人以上選択時にこの機能は使えません
+          .control
+            label.checkbox
               input(type="checkbox" v-model="generalSettings.dryRun")
               | dry-run(対象の検索まで行い、{{ blockMethodString }}を実行しない)
         h3 
@@ -201,6 +208,7 @@ export default {
       apiLimitExceed: false,
       generalSettings: {
         useMute: false,
+        expressMode: true,
         dryRun: false
       },
       whitelistSettings: {
@@ -250,6 +258,12 @@ export default {
       }
       else if (oldVal >= 15 && newVal < 15) {
         this.whitelistSettings.targetsFriend = true
+      }
+      if (newVal >= 20) {
+        this.generalSettings.expressMode = false
+      }
+      else if (oldVal >= 20 && newVal < 20) {
+        this.generalSettings.expressMode = true
       }
     }
   },
@@ -356,7 +370,7 @@ export default {
         await this.prepareWhitelist()
       }
       if (!this.showModal && this.executionStage < 2) {
-        await this.fetchReplies()
+        await this.createQueries()
       }
       if (!this.showModal && this.executionStage < 3) {
         await this.searchTweets()
@@ -431,46 +445,72 @@ export default {
       }
       this.whitelist = new Set(rawWhitelist)
     },
-    async fetchReplies () {
+    async createQueries () {
       this.executionStage = 2
-      for (let id of this.targetIds) {
-        try {
-          const res = await axios.get('/api/twitter/util/concat_id/statuses/user_timeline', {
-            params: {
-              user_id: id,
-              max_count: 200,
-              count: this.params.repliesToSearch,
-              include_rts: false
-            }
-          })
-          console.log(res)
-          const data = res.data
-          data.forEach(status => {
-            const replyUserId = status.in_reply_to_user_id_str
-            const replyUserScreenName = status.in_reply_to_screen_name
-            if (replyUserId
-                && this.targetIds.has(replyUserId)
-                && replyUserId !== status.user.id_str) {
-              this.replies.add(status.id_str)
-              if (!(this.searchQueries.has('@' + status.user.screen_name + ' @' + replyUserScreenName)
-                    || this.searchQueries.has('@' + replyUserScreenName + ' @' + status.user.screen_name))) {
-                this.searchQueries.add('@' + status.user.screen_name + ' @' + replyUserScreenName)
-                console.log('[reply] add ' + '@' + status.user.screen_name + ' @' + replyUserScreenName)
+      const targetScreenNamesList = Array.from(this.targetScreenNames)
+      if (this.generalSettings.expressMode) {
+        let index = 0
+        targetScreenNamesList.slice(0, targetScreenNamesList.length - 1).forEach(s1 => {
+          targetScreenNamesList.slice(index + 1).forEach(s2 => {
+            this.searchQueries.add(`${s1} ${s2}`)
+          }, this)
+          index += 1
+        }, this)
+      }
+      else {
+        for (let id of this.targetIds) {
+          try {
+            const res = await axios.get('/api/twitter/util/concat_id/statuses/user_timeline', {
+              params: {
+                user_id: id,
+                max_count: 200,
+                count: this.params.repliesToSearch,
+                include_rts: false
               }
-            }
-          })
-        }
-        catch (err) {
-          this.apiLimitExceed = true
-          this.showModal = true
-          return
+            })
+            console.log(res)
+            const data = res.data
+            data.forEach(status => {
+              const replyUserId = status.in_reply_to_user_id_str
+              const replyUserScreenName = status.in_reply_to_screen_name
+              if (replyUserId
+                  && this.targetIds.has(replyUserId)
+                  && replyUserId !== status.user.id_str) {
+                this.replies.add(status.id_str)
+                if (!(this.searchQueries.has('@' + status.user.screen_name + ' @' + replyUserScreenName)
+                      || this.searchQueries.has('@' + replyUserScreenName + ' @' + status.user.screen_name))) {
+                  this.searchQueries.add('@' + status.user.screen_name + ' @' + replyUserScreenName)
+                  console.log('[reply] add ' + '@' + status.user.screen_name + ' @' + replyUserScreenName)
+                }
+              }
+            })
+          }
+          catch (err) {
+            this.apiLimitExceed = true
+            this.showModal = true
+            return
+          }
         }
       }
     },
     async searchTweets () {
       this.executionStage = 3
-      const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.size)
+      const actualQueries = []
       for (let q of this.searchQueries) {
+        if (actualQueries.length === 0) {
+          actualQueries.push(q)
+        }
+        // consider " OR " and "exclude:retweets"
+        else if (actualQueries[actualQueries.length - 1].length + q.length + 4 < 480) {
+          actualQueries[actualQueries.length - 1] += ' OR ' + q
+        }
+        else {
+          actualQueries.push(q)
+        }
+      }
+      const count = Math.floor(this.params.tweetsToSearch / actualQueries.length)
+      console.log(actualQueries)
+      for (let q of actualQueries) {
         try {
           const { data } = await axios.get('/api/twitter/util/search_tweets', {
             params: {
@@ -479,7 +519,8 @@ export default {
             }
           })
           data.forEach(status => {
-            if (!(this.whitelist.has(status.user.id_str))
+            if (status.in_reply_to_status_id
+                && !(this.whitelist.has(status.user.id_str))
                 && !(this.whitelistSettings.ffRate && status.user.followers_count / status.user.friends_count < this.params.ffRateThreshold)) {
               this.otakuIds.add(status.user.id_str)
               console.log('[search] add ' + status.user.screen_name)
