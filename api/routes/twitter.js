@@ -103,18 +103,26 @@ router.get('/twitter/util/search_tweets', async (req, res, next) => {
   if (req.session && !req.session.oauth) {
     res.status(401).send('unauthorized')
   }
+  const query = {}
   const maxCount = 100
   const totalCount = req.query.count ? req.query.count : maxCount
-  req.query.count = maxCount
+  query.q = req.query.q
+  query.count = maxCount
 
   const tmpClient = client(req)
   let data = []
-  let maxId = 0
+  let maxId = '0'
   while (data.length < totalCount) {
-    req.query.max_id = maxId
+    query.max_id = maxId
     let response = {}
     try {
-      response = await tmpClient.get('/search/tweets', req.query)
+      response = await tmpClient.get('/search/tweets', query)
+      console.log(response)
+      data = data.concat(response.statuses)
+      if (data[data.length - 1].id_str === maxId) {
+        break
+      }
+      maxId = data[data.length - 1].id_str
     }
     catch (err) {
       if (data.length === 0) {
@@ -122,16 +130,9 @@ router.get('/twitter/util/search_tweets', async (req, res, next) => {
         res.status(500).json(err)
       }
       else {
+        console.log(err)
         break
       }
-    }
-    try {
-      const next_results = response.search_metadata.next_results
-      data = data.concat(response.statuses)
-      maxId = querystring.parse(next_results).max_id
-    }
-    catch (err) {
-      break
     }
   }
   res.json(data)

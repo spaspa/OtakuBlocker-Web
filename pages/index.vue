@@ -495,22 +495,23 @@ export default {
     },
     async searchTweets () {
       this.executionStage = 3
-      const actualQueries = []
+      /// const actualQueries = []
+      // Got less results with this method
+      // for (let q of this.searchQueries) {
+      //   if (actualQueries.length === 0) {
+      //     actualQueries.push(q)
+      //   }
+      //   // consider " OR " and "exclude:retweets"
+      //   else if (actualQueries[actualQueries.length - 1].length + q.length + 4 < 480) {
+      //     actualQueries[actualQueries.length - 1] += ' OR ' + q
+      //   }
+      //   else {
+      //     actualQueries.push(q)
+      //   }
+      // }
+      // const count = Math.floor(this.params.tweetsToSearch / actualQueries.length)
+      const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.length)
       for (let q of this.searchQueries) {
-        if (actualQueries.length === 0) {
-          actualQueries.push(q)
-        }
-        // consider " OR " and "exclude:retweets"
-        else if (actualQueries[actualQueries.length - 1].length + q.length + 4 < 480) {
-          actualQueries[actualQueries.length - 1] += ' OR ' + q
-        }
-        else {
-          actualQueries.push(q)
-        }
-      }
-      const count = Math.floor(this.params.tweetsToSearch / actualQueries.length)
-      console.log(actualQueries)
-      for (let q of actualQueries) {
         try {
           const { data } = await axios.get('/api/twitter/util/search_tweets', {
             params: {
