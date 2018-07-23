@@ -1,7 +1,7 @@
 type: runtime
 
-startup: npm i
-entrypoint: npm run start
+startup: yarn
+entrypoint: yarn start
 
 http_proxy: 3000
 cname: [blocker.spa.trapti.tech]
