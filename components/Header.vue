@@ -21,7 +21,7 @@
                   :class="baloonClass")
       p
         | Log in to Twitter
-    .headerBaloon(v-else-if="authUser && startable"
+    .headerBaloon(v-else-if="authUser"
                   :class="baloonWithBuruburuClass")
       p(v-if="status === 'Wait'")
         | Please Wait...
@@ -71,7 +71,7 @@ export default {
       'authUser'
     ]),
     baloonClass () {
-      return this.scrollY < 50 ? 'baloonActive' : 'baloonInactive'
+      return this.scrollY < 50 && (!this.authUser || this.startable) ? 'baloonActive' : 'baloonInactive'
     },
     headerClass () {
       return this.scrollY < 50 ? '' : 'headerFloating'
