@@ -1,0 +1,6 @@
+type: "runtime"
+startup: "yarn"
+entrypoint: "yarn start"
+http_proxy: 3000
+cname: ["blocker.spa.trapti.tech"]
+https: "hard"
