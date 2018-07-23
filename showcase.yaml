@@ -4,4 +4,3 @@ startup: npm i
 entrypoint: npm run start
 
 http_proxy: 3000
-cname: blocker.spa.trapti.tech
