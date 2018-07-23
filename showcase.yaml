@@ -4,6 +4,4 @@ startup: yarn
 entrypoint: yarn start
 
 http_proxy: 3000
-cname: [blocker.spa.trap.show]
-
 https: hard
