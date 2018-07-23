@@ -14,10 +14,8 @@ export default {
   },
   mounted () {
     window.addEventListener('scroll', this.onScroll)
-    window.addEventListener('resize', this.onResize)
     window.addEventListener('load', () => {
       this.onScroll()
-      this.onResize()
     })
   },
   methods: {
