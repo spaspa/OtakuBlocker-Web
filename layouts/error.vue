@@ -1,16 +1,10 @@
-<template>
-  <section class="container">
-    <img src="../assets/img/logo.png" alt="Nuxt.js Logo" class="logo" />
-    <h1 class="title">
-      {{ error.statusCode }}
-    </h1>
-    <h2 class="info">
-      {{ error.message }}
-    </h2>
-    <nuxt-link class="button" to="/" v-if="error.statusCode === 404">
-      Homepage
-    </nuxt-link>
-  </section>
+<template lang="pug">
+  section
+    .titleBox
+      .titleBg
+      .titleMain
+        h1 {{ error.statusCode }}
+        small {{ error.message }}
 </template>
 <script>
 export default {
@@ -18,20 +12,34 @@ export default {
 }
 </script>
 
-<style scoped>
-.title
-{
-  margin-top: 15px;
-  font-size: 5em;
-}
-.info
-{
-  font-weight: 300;
-  color: #9aabb1;
-  margin: 0;
-}
-.button
-{
-  margin-top: 50px;
-}
+<style lang="sass" scoped>
+@import "~/assets/css/main.sass"
+.titleBox
+  width: 100vw
+  height: 15rem
+  position: relative
+  display: flex
+  justify-content: center
+
+.shiftedForBaloon
+  transform: translateY(100px)
+  &.marginForFooter
+    margin-bottom: 100px
+
+.titleBg
+  width: 300%
+  height: 200%
+  background: $primary
+  position: absolute
+  transform: rotate(-10deg) translate(0, -50%)
+
+.titleMain
+  position: absolute
+  top: 100px
+  color: #ffffff
+  text-align: center
+  h1
+    font-family: 'Quicksand', sans-serif
+    font-size: 2.5rem
+    font-weight: 600
 </style>
