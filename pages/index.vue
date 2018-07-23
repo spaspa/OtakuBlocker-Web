@@ -1,5 +1,5 @@
 <template lang="pug">
-  section.container
+  section
     Modal(v-if="showModal"
           @modalCancel="onModalCancel"
           @modalConfirm="onModalConfirm")
@@ -17,7 +17,35 @@
            :startable="selectedUsers.length >= 2"
            @executeButtonClick="onExecuteButtonClick"
            @logoutClick="logout")
-    .container(v-if="!authUser")
+    .titleBox(:class="!authUser ? 'shiftedForBaloon' : ''")
+      .titleBg
+      .titleMain
+        h1 Otaku Blocker
+        small 会話に割り込むオタクよさらば！
+    .container.shiftedForBaloon(v-if="!authUser")
+      .box.stepContent
+        .numberCircle
+          p ?
+        .topDescription
+          h2 Otaku Blockerとは？
+          p オフィシャルな人物同士の会話の途中にリプライを送るような、
+          strong 触るな〜！！ なぜ参加しようとする
+          strong 見てて！ただただ見てて！
+          p ……と言いたくなる人たちをブロックするツールです！
+    .container.shiftedForBaloon.marginForFooter(v-if="!authUser")
+      .box.stepContent
+        .numberCircle
+          p #
+        .topDescription
+          h2 使い方
+          ol
+            li 上のボタンからTwitterにログイン
+            li 会話に介入されたくないユーザーをリストで選択するか、ユーザを検索して指定します
+            li
+              | オプションを確認して、
+              span.icon
+                i.fas.fa-ban
+              | ボタンで実行！
     .container(v-if="authUser" :class="executionStage === 0 ? 'mainContainerActive' : 'mainContainerInActive'")
       .box.stepContent#box1
         .numberCircle
@@ -613,7 +641,7 @@ export default {
   border-radius: 50%
 
 .container
-  padding: 50px 15px 50px 20px
+  padding: 20px 30px 50px 40px
   max-width: 950px
   align-items: center
 
@@ -627,6 +655,42 @@ export default {
 .mainContainerInActive
   transition: all 0.2s ease
   transform: translateY(100vh)
+
+.titleBox
+  width: 100vw
+  height: 15rem
+  position: relative
+  display: flex
+  justify-content: center
+
+.titleBox
+  +mobile
+  height: 15rem
+
+.shiftedForBaloon
+  transform: translateY(100px)
+  &.marginForFooter
+    margin-bottom: 100px
+
+.titleBg
+  width: 300%
+  height: 200%
+  background: $primary
+  position: absolute
+  transform: rotate(-10deg) translate(0, -50%)
+
+.titleMain
+  position: absolute
+  top: 100px
+  color: #ffffff
+  text-align: center
+  h1
+    font-family: 'Quicksand', sans-serif
+    font-size: 5rem
+    font-weight: 600
+  h1
+    +mobile
+    font-size: 2.5rem
 
 .stepContent
   position: relative
@@ -663,8 +727,28 @@ export default {
   display: flex
   align-items: center
   justify-content: center
-  box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.1)
+  box-shadow: 2px 2px 8px 0px rgba(0, 0, 0, 0.2)
 
+.topDescription
+  display: flex
+  flex-direction: column
+  color: $primary
+  align-items: start
+  padding-left: 20px
+  margin-bottom: 1.5rem
+  text-align: left
+  line-height: 2rem
+  h2
+    font-size: 1.2rem
+    font-weight: 600
+    color: $primary
+    margin-bottom: 0.5rem
+  strong
+    color: $primary
+    font-size: 1.2rem
+    line-height: 3rem
+  li
+    line-height: 2.3rem
 
 .description
   display: flex

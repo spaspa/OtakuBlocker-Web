@@ -1,5 +1,5 @@
 <template lang="pug">
-  .header(role="header")
+  .header(role="header" :class="headerClass")
     #po
     svg#curve(version="1.1"
               xmlns="http://www.w3.org/2000/svg"
@@ -73,6 +73,9 @@ export default {
     baloonClass () {
       return this.scrollY < 50 ? 'baloonActive' : 'baloonInactive'
     },
+    headerClass () {
+      return this.scrollY < 50 ? '' : 'headerFloating'
+    },
     baloonWithBuruburuClass () {
       return this.baloonClass + ' ' + (this.buruburuEnabled ? 'buruburuBaloon' : '')
     },
@@ -107,6 +110,11 @@ export default {
   top: 0
   left: 0
   z-index: 100
+  width: 100vw
+  transition: all 0.5s ease
+
+.headerFloating
+  filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.1))
 
 #po
   background: $primary
@@ -121,7 +129,7 @@ export default {
   width: 400px
   position: fixed
   top: 0px
-  left: 50%
+  left: 50vw
   transform: translate(-50%, 0px)
 
 #executeButton
@@ -131,7 +139,7 @@ export default {
   height: 40vw
   position: fixed
   top: 10px
-  left: 50%
+  left: 50vw
   transform: translate(-50%, 0px)
   display: flex
   align-items: center
@@ -144,7 +152,7 @@ export default {
 
 .headerBaloon
   position: fixed
-  left: 50%
+  left: 50vw
   transform: translate(-50%, 120px)
   z-index: 100
   display: flex
