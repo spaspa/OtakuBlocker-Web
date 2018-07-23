@@ -29,8 +29,10 @@
         .topDescription
           h2 Otaku Blockerとは？
           p オフィシャルな人物同士の会話の途中にリプライを送るような、
-          strong 触るな〜！！ なぜ参加しようとする
-          strong 見てて！ただただ見てて！
+          strong.lessStrong 触るな〜！！
+          strong.lessStrong なぜ参加しようとする
+          strong 見てて！
+          strong.moreStrong ただただ見てて！
           p ……と言いたくなる人たちをブロックするツールです！
     .container.shiftedForBaloon.marginForFooter(v-if="!authUser")
       .box.stepContent
@@ -747,6 +749,11 @@ export default {
     color: $primary
     font-size: 1.2rem
     line-height: 3rem
+  strong.lessStrong
+    font-size: 1.0rem
+    line-height: 2.7rem
+  strong.moreStrong
+    font-size: 1.5rem
   li
     line-height: 2.3rem
 
