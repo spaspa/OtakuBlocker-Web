@@ -1,7 +1,16 @@
 const bodyParser = require('body-parser')
 const session = require('express-session')
 
+/* nuxt.config.js */
+// `DEPLOY_ENV` が `SHOWCASE` の場合のみ `router.base = '/<repository-name>/'` を追加する
+const routerBase = process.env.DEPLOY_ENV === 'SHOWCASE' ? {
+  router: {
+    base: `/${process.env.PAGEROOT}/`
+  }
+} : {}
+
 module.exports = {
+  ...routerBase,
   /*
   ** Headers of the page
   */
