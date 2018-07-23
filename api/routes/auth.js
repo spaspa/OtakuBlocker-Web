@@ -8,7 +8,7 @@ const oauth = new (require('oauth').OAuth)(
   process.env.TWITTER_CONSUMER_KEY,
   process.env.TWITTER_CONSUMER_SECRET,
   '1.0',
-  'http://localhost:3000/api/auth/callback',
+  `${process.env.URL}/api/auth/callback`,
   'HMAC-SHA1'
 )
 
