@@ -839,9 +839,9 @@ export default {
   text-align: left
 
 .modal-footer
-  margin: 1rem
+  margin: 1rem 0px
   > *
-    margin: 0rem 1rem
+    margin: 0px 0.5rem
     font-width: 600
 
 .statusArea

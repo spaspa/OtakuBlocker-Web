@@ -24,9 +24,8 @@ export default {
 @import "~/assets/css/main.sass"
 
 .container
-  height: 300px
   width: 80vw
-  max-width: 600px
+  max-width: 510px
   padding: 20px 30px
   background-color: #fff
   border-radius: 10px
@@ -45,9 +44,9 @@ export default {
   margin: 0.5rem
 
 .modal-footer
-  margin: 1rem
+  margin: 1rem 0px
   > *
-    margin: 0rem 1rem
+    margin: 0rem 0.5rem
     font-width: 600
 
 .modal-mask
