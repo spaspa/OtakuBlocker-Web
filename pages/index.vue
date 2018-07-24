@@ -859,24 +859,23 @@ export default {
 
 .statusAreaBg
   z-index: -1
-  background-color: crimson
+  background-color: $primary
   position: fixed
   border-radius: 50%
   position: fixed
   top: 10px
   left: 50vw
-  transform: translateX(-50%)
 
 .statusAreaBgInActive
   transition: all 0.1s ease
   width: 10px
   height: 10px
-  transform: translateY(30px)
+  transform: translateY(-5px, -5px)
 
 .statusAreaBgActive
   transition: all 2s cubic-bezier(0,.79,.31,.87)
   width: 300vh
   height: 300vh
-  transform: translateY(-150vh)
+  transform: translate(-150vh, -150vh)
 
 </style>
