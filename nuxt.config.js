@@ -2,9 +2,6 @@ const bodyParser = require('body-parser')
 const session = require('express-session')
 
 module.exports = {
-  router: {
-    base: '/app/'
-  },
   /*
   ** Headers of the page
   */
