@@ -117,7 +117,6 @@ router.get('/twitter/util/search_tweets', async (req, res, next) => {
     let response = {}
     try {
       response = await tmpClient.get('/search/tweets', query)
-      console.log(response)
       data = data.concat(response.statuses)
       if (data[data.length - 1].id_str === maxId) {
         break
