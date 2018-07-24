@@ -29,6 +29,7 @@
           p ?
         .topDescription
           h2 Otaku Blockerとは？
+          img.otakublockerImage(src="~/assets/img/otakublocker-image.svg")
           p オフィシャルな人物同士の会話の途中にリプライを送るような、
           strong.lessStrong 触るな〜！！
           strong.lessStrong なぜ参加しようとする
