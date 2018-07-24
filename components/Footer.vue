@@ -5,7 +5,7 @@
     span.icon.is-small
       i.fas.fa-heart
     | by 
-    a(href="https://eleven-lines.github.io/")
+    a(href="https://www.spaspa.me/")
       | Spa
 </template>
 
