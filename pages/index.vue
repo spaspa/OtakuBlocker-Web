@@ -864,7 +864,7 @@ export default {
   border-radius: 50%
   position: fixed
   top: 10px
-  left: 50%
+  left: 50vw
 
 .statusAreaBgInActive
   transition: all 0.1s ease
