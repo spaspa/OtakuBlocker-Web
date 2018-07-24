@@ -5,7 +5,7 @@
     span.icon.is-small
       i.fas.fa-heart
     | by 
-    a(href="https://spaspa.me/")
+    a(href="https://twitter.com/__spaspa__/")
       | Spa
 </template>
 
