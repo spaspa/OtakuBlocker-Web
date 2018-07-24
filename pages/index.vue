@@ -15,6 +15,7 @@
     Header(:status="executionStage === 5 ? 'Done' : executionStage > 0 ? 'Wait' : ''"
            :disabled="executionStage > 0 && executionStage !== 5"
            :startable="selectedUsers.length >= 2"
+           :executing="executionStage >= 1"
            @executeButtonClick="onExecuteButtonClick"
            @logoutClick="logout")
     .titleBox(:class="!authUser ? 'shiftedForBaloon' : ''")

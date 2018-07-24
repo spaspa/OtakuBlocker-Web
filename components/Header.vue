@@ -63,7 +63,8 @@ export default {
   props: {
     status: '',
     disabled: false,
-    startable: false
+    startable: false,
+    executing: false
   },
   computed: {
     ...mapState([
@@ -71,7 +72,12 @@ export default {
       'authUser'
     ]),
     baloonClass () {
-      return this.scrollY < 50 && (!this.authUser || this.startable) ? 'baloonActive' : 'baloonInactive'
+      if (this.executing || (this.scrollY < 50 && (!this.authUser || this.startable))) {
+        return 'baloonActive'
+      }
+      else {
+        return 'baloonInactive'
+      }
     },
     headerClass () {
       return this.scrollY < 50 ? '' : 'headerFloating'
