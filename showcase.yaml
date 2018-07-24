@@ -4,6 +4,6 @@ startup: yarn
 entrypoint: yarn start
 
 http_proxy: 3000
-https: soft
+https: hard
 
 cname: [otakublocker.spaspa.me]
