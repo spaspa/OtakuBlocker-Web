@@ -670,7 +670,7 @@ export default {
 
 .container
   padding: 20px 30px 50px 40px
-  max-width: 950px
+  max-width: 975px
   align-items: center
 
 .box
