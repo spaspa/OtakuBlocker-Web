@@ -544,8 +544,9 @@ export default {
       //   }
       // }
       // const count = Math.floor(this.params.tweetsToSearch / actualQueries.length)
-      const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.length)
+      const count = Math.floor(this.params.tweetsToSearch / this.searchQueries.size)
       for (let q of this.searchQueries) {
+        console.log(`[search] '${q}' @ ${count}`)
         try {
           const { data } = await axios.get('/api/twitter/util/search_tweets', {
             params: {
