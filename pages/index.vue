@@ -35,7 +35,7 @@
           strong 見てて！
           strong.moreStrong ただただ見てて！
           p ……と言いたくなる人たちをブロックするツールです！
-    .container.shiftedForBaloon.marginForFooter(v-if="!authUser")
+    .container.shiftedForBaloon(v-if="!authUser")
       .box.stepContent
         .numberCircle
           p #
@@ -179,6 +179,30 @@
               .field
                 .control
                   input.input(v-model.number="params.ffRateThreshold")
+    .container(:class="!authUser ? 'shiftedForBaloon marginForFooter' : ''")
+      .box.stepContent
+        .numberCircle
+          p !
+        .description
+          h2 注意事項
+          .warning
+            h3
+              span.icon
+                i.fas.fa-bomb
+              | 処理前の確認
+            p ボタンを押した時点で処理が開始されます。処理前に確認は行いません。
+          .warning
+            h3
+              span.icon
+                i.fas.fa-hand-paper
+              | APIの制限
+            p Twitter APIの制限から、遡れるツイートは1週間前までのものです。また、対象となるユーザーは検索できる範囲のもののみであり、それ以外の対象とすべきすべてのユーザーに対して処理を実行するものではありません。
+          .warning
+            h3
+              span.icon
+                i.fas.fa-exclamation-triangle
+              | 免責事項
+            p 当サイトを利用し利用者、または第三者に生じた損害・損失について、製作者はいかなる責任も負いかねます。
     .statusArea(:class="classStatusArea")
       .statusAreaBg(:class="classStatusAreaBg")
       transition
@@ -739,14 +763,14 @@ export default {
   color: $primary
   align-items: start
   padding-left: 20px
-  margin-bottom: 1.5rem
+  margin-bottom: 0.5rem
   text-align: left
   line-height: 2rem
   h2
     font-size: 1.2rem
     font-weight: 600
     color: $primary
-    margin-bottom: 0.5rem
+    margin-bottom: 1rem
   strong
     color: $primary
     font-size: 1.2rem
@@ -756,6 +780,8 @@ export default {
     line-height: 2.7rem
   strong.moreStrong
     font-size: 1.5rem
+  ol
+    margin-left: 1rem
   li
     line-height: 2.3rem
 
@@ -765,7 +791,7 @@ export default {
   color: $primary
   align-items: start
   padding-left: 20px
-  margin-bottom: 1.5rem
+  margin-bottom: 0.5rem
   text-align: left
   h2
     font-size: 1.2rem
@@ -774,6 +800,9 @@ export default {
     margin-bottom: 0.5rem
   p
     font-size: 0.8rem
+
+.warning
+  margin: 1rem 0px
 
 .subcontainer
   width: 100%
