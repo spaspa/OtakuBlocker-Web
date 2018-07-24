@@ -16,6 +16,9 @@ module.exports = {
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
     ]
   },
+  env: {
+    url: process.env.URL || 'http://localhost:3000'
+  },
   /*
   ** Global CSS
   */

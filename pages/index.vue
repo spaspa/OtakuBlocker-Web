@@ -615,7 +615,7 @@ export default {
     },
     onExecuteButtonClick () {
       if (this.executionStage === 5) {
-        location.href = `http://twitter.com/share?url=${process.env.URL}&text=${this.targetIds.size}人の会話を守りました！&hashtags=OtakuBlocker`
+        location.href = `http://twitter.com/share?url=${process.env.url}&text=${this.targetIds.size}人の会話を守りました！&hashtags=OtakuBlocker`
       }
       else if (this.authUser) {
         this.whitelist = new Set([])
