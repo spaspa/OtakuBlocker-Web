@@ -591,9 +591,11 @@ export default {
         }
         catch (err) {
           this.apiLimitExceed = true
-          this.showModal = true
-          return
+          continue
         }
+      }
+      if (this.apiLimitExceed) {
+        this.showModal = true
       }
     },
     async executeBlock () {
